@@ -1,8 +1,8 @@
 //====================================================================
-//Phoenix Driver for SSC 32 Channel Servo Controller
-//Function: Servo Driver - This version is setup to use the SSC-32 to control servo motors
-//Last Updated: 
-//Depends On: 
+//Project Lynxmotion Phoenix
+//
+// Servo Driver - This version is setup to use the SSC-32 to control
+// the servos.
 //====================================================================
 #if ARDUINO>99
 #include <Arduino.h> // Arduino 1.0
@@ -17,6 +17,8 @@
 #define NUMSERVOSPERLEG 3
 #endif
 
+#include "hexServoPins.h"
+
 #ifdef USE_SSC32
 
 //Servo Pin numbers - May be SSC-32 or actual pins on main controller, depending on configuration.
@@ -25,7 +27,7 @@ const byte cFemurPin[] PROGMEM = {cRRFemurPin, cRMFemurPin, cRFFemurPin, cLRFemu
 const byte cTibiaPin[] PROGMEM = {cRRTibiaPin, cRMTibiaPin, cRFTibiaPin, cLRTibiaPin, cLMTibiaPin, cLFTibiaPin};
 
 
-#ifdef c4DOF //[NATA]
+#ifdef c4DOF
 const byte cTarsPin[] PROGMEM = {cRRTarsPin, cRMTarsPin, cRFTarsPin, cLRTarsPin, cLMTarsPin, cLFTarsPin};
 #endif
 
@@ -50,13 +52,19 @@ const byte cTarsPin[] PROGMEM = {cRRTarsPin, cRMTarsPin, cRFTarsPin, cLRTarsPin,
 extern int SSCRead (byte* pb, int cb, word wTimeout, word wEOL);
 
 
+//=============================================================================
+// Function Prototypes
+//=============================================================================
+void WriteToPin(byte pin, word rot);
+
 //--------------------------------------------------------------------
 //Init
 //--------------------------------------------------------------------
 void ServoDriver::Init(void) {
     SSCSerial.begin(cSSC_BAUD);
     
-#ifdef OPT_GPPLAYER //Checks to see if the SSC-32 support the general purpose sequences
+    // Lets do the check for GP Enabled here...
+#ifdef OPT_GPPLAYER
     char abVer[40];        // give a nice large buffer.
     byte cbRead;
 
@@ -207,46 +215,55 @@ void ServoDriver::OutputServoInfoForLeg(byte LegIndex, short sCoxaAngle1, short 
     }
 
 #ifdef cSSC_BINARYMODE
-    SSCSerial.write(pgm_read_byte(&cCoxaPin[LegIndex])  + 0x80);
-    SSCSerial.write(wCoxaSSCV >> 8);
-    SSCSerial.write(wCoxaSSCV & 0xff);
-    SSCSerial.write(pgm_read_byte(&cFemurPin[LegIndex]) + 0x80);
-    SSCSerial.write(wFemurSSCV >> 8);
-    SSCSerial.write(wFemurSSCV & 0xff);
-    SSCSerial.write(pgm_read_byte(&cTibiaPin[LegIndex]) + 0x80);
-    SSCSerial.write(wTibiaSSCV >> 8);
-    SSCSerial.write(wTibiaSSCV & 0xff);
+    //SSCSerial.write(pgm_read_byte(&cCoxaPin[LegIndex])  + 0x80);
+    //SSCSerial.write(wCoxaSSCV >> 8);
+    //SSCSerial.write(wCoxaSSCV & 0xff);
+	WriteToPin(pgm_read_byte(&cCoxaPin[LegIndex]), wCoxaSSCV);
+
+   // SSCSerial.write(pgm_read_byte(&cFemurPin[LegIndex]) + 0x80);
+    //SSCSerial.write(wFemurSSCV >> 8);
+    //SSCSerial.write(wFemurSSCV & 0xff);
+	WriteToPin(pgm_read_byte(&cFemurPin[LegIndex]), wFemurSSCV);
+
+    //SSCSerial.write(pgm_read_byte(&cTibiaPin[LegIndex]) + 0x80);
+    //SSCSerial.write(wTibiaSSCV >> 8);
+    //SSCSerial.write(wTibiaSSCV & 0xff);
+	WriteToPin(pgm_read_byte(&cTibiaPin[LegIndex]), wTibiaSSCV);
+
 #ifdef c4DOF
     if ((byte)pgm_read_byte(&cTarsLength[LegIndex])) {    // We allow mix of 3 and 4 DOF legs...
-        SSCSerial.write(pgm_read_byte(&cTarsPin[LegIndex]) + 0x80);
-        SSCSerial.write(wTarsSSCV >> 8);
-        SSCSerial.write(wTarsSSCV & 0xff);
+        //SSCSerial.write(pgm_read_byte(&cTarsPin[LegIndex]) + 0x80);
+        //SSCSerial.write(wTarsSSCV >> 8);
+        //SSCSerial.write(wTarsSSCV & 0xff);
+		WriteToPin(pgm_read_byte(&cTarsPin[LegIndex]), wTarsSSCV);
     }
 #endif
 #else
-    //The format for writing to the SSC32 can be found in it's documentation for our purpose
-    //# signals the start of a command + {Pin Number} + P signals the start of the speeed + {Pulse}
-    //The serial object is setup with the correct baud rate, at this point we have abstracted talking to the servo controller
-    //enough where we can send a word object
-    //TODO: Make this a function 
-    SSCSerial.print("#");
-    SSCSerial.print(pgm_read_byte(&cCoxaPin[LegIndex]), DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wCoxaSSCV, DEC);
-    SSCSerial.print("#");
-    SSCSerial.print(pgm_read_byte(&cFemurPin[LegIndex]), DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wFemurSSCV, DEC);
-    SSCSerial.print("#");
-    SSCSerial.print(pgm_read_byte(&cTibiaPin[LegIndex]), DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wTibiaSSCV, DEC);
+    //SSCSerial.print("#");
+    //SSCSerial.print(pgm_read_byte(&cCoxaPin[LegIndex]), DEC);
+    //SSCSerial.print("P");
+    //SSCSerial.print(wCoxaSSCV, DEC);
+	WriteToPin(pgm_read_byte(&cCoxaPin[LegIndex]), wCoxaSSCV);
+
+    //SSCSerial.print("#");
+    //SSCSerial.print(pgm_read_byte(&cFemurPin[LegIndex]), DEC);
+    //SSCSerial.print("P");
+    //SSCSerial.print(wFemurSSCV, DEC);
+	WriteToPin(pgm_read_byte(&cFemurPin[LegIndex]), wFemurSSCV);
+
+    //SSCSerial.print("#");
+    //SSCSerial.print(pgm_read_byte(&cTibiaPin[LegIndex]), DEC);
+    //SSCSerial.print("P");
+    //SSCSerial.print(wTibiaSSCV, DEC);
+	WriteToPin(pgm_read_byte(&cTibiaPin[LegIndex]), wTibiaSSCV);
+
 #ifdef c4DOF
     if ((byte)pgm_read_byte(&cTarsLength[LegIndex])) {
-        SSCSerial.print("#");
-        SSCSerial.print(pgm_read_byte(&cTarsPin[LegIndex]), DEC);
-        SSCSerial.print("P");
-        SSCSerial.print(wTarsSSCV, DEC);
+        //SSCSerial.print("#");
+        //SSCSerial.print(pgm_read_byte(&cTarsPin[LegIndex]), DEC);
+        //SSCSerial.print("P");
+        //SSCSerial.print(wTarsSSCV, DEC);
+		WriteToPin(pgm_read_byte(&cTarsPin[LegIndex]), wTarsSSCV);
     }
 #endif
 #endif        
@@ -272,32 +289,40 @@ void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot
    
 // Do some writing 
 #ifdef cSSC_BINARYMODE
-    SSCSerial.write((byte)cManRollPin + 0x80);
-    SSCSerial.write(wZRotSSCV >> 8 );
-    SSCSerial.write(wZRotSSCV & 0xff);
+    ///SSCSerial.write((byte)cManRollPin + 0x80);
+    ///SSCSerial.write(wZRotSSCV >> 8 );
+    ///SSCSerial.write(wZRotSSCV & 0xff);
     
-    SSCSerial.write((byte)cManPitchPin + 0x80);
-    SSCSerial.write(wXRotSSCV >> 8 );
-    SSCSerial.write(wXRotSSCV & 0xff);
+    ///SSCSerial.write((byte)cManPitchPin + 0x80);
+    ///SSCSerial.write(wXRotSSCV >> 8 );
+    ///SSCSerial.write(wXRotSSCV & 0xff);
     
-    SSCSerial.write((byte)cManYawPin + 0x80);
-    SSCSerial.write(wYRotSSCV >> 8 );
-    SSCSerial.write(wYRotSSCV & 0xff);
+    ///SSCSerial.write((byte)cManYawPin + 0x80);
+    ///SSCSerial.write(wYRotSSCV >> 8 );
+    ///SSCSerial.write(wYRotSSCV & 0xff);
+   WriteToPin(cManRollPin, wZRotSSCV);
+   WriteToPin(cManPitchPin, wXRotSSCV);
+   WriteToPin(cManYawPin, wYRotSSCV);
+
 #else
-    SSCSerial.print("#");
-    SSCSerial.print((byte)cManRollPin, DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wZRotSSCV, DEC);
+    //SSCSerial.print("#");
+    //SSCSerial.print((byte)cManRollPin, DEC);
+    //SSCSerial.print("P");
+    //SSCSerial.print(wZRotSSCV, DEC);
     
-    SSCSerial.print("#");
-    SSCSerial.print((byte)cManPitchPin, DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wXRotSSCV, DEC);
+    //SSCSerial.print("#");
+    //SSCSerial.print((byte)cManPitchPin, DEC);
+    //SSCSerial.print("P");
+    //SSCSerial.print(wXRotSSCV, DEC);
     
-    SSCSerial.print("#");
-    SSCSerial.print((byte)cManYawPin, DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wYRotSSCV, DEC);
+    //SSCSerial.print("#");
+    //SSCSerial.print((byte)cManYawPin, DEC);
+    //SSCSerial.print("P");
+    //SSCSerial.print(wYRotSSCV, DEC);
+
+   WriteToPin(cManRollPin, wZRotSSCV);
+   WriteToPin(cManPitchPin, wXRotSSCV);
+   WriteToPin(cManYawPin, wYRotSSCV);
 
 #endif  
 
@@ -305,45 +330,20 @@ void ServoDriver::OutputServoInfoForMandibles(short xRot, short yRot, short zRot
   g_InputController.AllowControllerInterrupts(true);
 }
 
-//--------------------------------------------------------------------
-//[Tail Servo Driver] Controls the tail servo motors 
-//Requires pins configuration for pan and raise servos for the tail
-//-------------------------------------------------------------------
-void ServoDriver::OutputServoInfoForTails(short yRot, short zRot)
-{
-  word    wYRotSSCV;
-  word    wZRotSSCV;
-  
-  // Disable interrupts
-  g_InputController.AllowControllerInterrupts(false);
-  
-  // Set up words
-   wYRotSSCV = ((long)(-yRot +900))*1000/cPwmDiv+cPFConst;
-   wZRotSSCV = ((long)(-zRot +900))*1000/cPwmDiv+cPFConst;
-   
-// Do some writing 
-#ifdef cSSC_BINARYMODE
-    SSCSerial.write((byte)ctailPanPin + 0x80);
-    SSCSerial.write(wZRotSSCV >> 8 );
-    SSCSerial.write(wZRotSSCV & 0xff);
-    
-    SSCSerial.write((byte)ctailPitchPin + 0x80);
-    SSCSerial.write(wYRotSSCV >> 8 );
-    SSCSerial.write(wYRotSSCV & 0xff);
-#else
-    SSCSerial.print("#");
-    SSCSerial.print((byte)ctailPitchPin, DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wZRotSSCV, DEC);
-    
-    SSCSerial.print("#");
-    SSCSerial.print((byte)ctailPanPin, DEC);
-    SSCSerial.print("P");
-    SSCSerial.print(wYRotSSCV, DEC);
 
-#endif  
-  // Re-enable interrupts
-  g_InputController.AllowControllerInterrupts(true);
+// TODO: verify that these functions work
+void WriteToPin(byte pin, word rot)
+{
+#ifdef cSSC_BINARYMODE
+	SSCSerial.write((byte)pin + 0x80);
+	SSCSerial.write(rot >> 8);
+	SSCSerial.write(rot & 0xff);
+#else
+	SSCSerial.print("#");
+	SSCSerial.print((byte)pin, DEC);
+	SSCSerial.print("P");
+	SSCSerial.print(rot, DEC);
+#endif
 }
 
 //--------------------------------------------------------------------

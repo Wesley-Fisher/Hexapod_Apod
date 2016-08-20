@@ -42,9 +42,9 @@ extern short SmoothControl (short CtrlMoveInp, short CtrlMoveOut, byte CtrlDivid
 //-----------------------------------------------------------------------------
 // Define global class objects
 //-----------------------------------------------------------------------------
-extern ServoDriver      g_ServoDriver;           // Global instance of servo driver to enable communication between BotBoarduino and SSC32
+extern ServoDriver      g_ServoDriver;           // our global servo driver class
 extern InputController  g_InputController;       // Our Input controller 
-extern INCONTROLSTATE   g_InControlState;	 // Encapsulates all values that the controller (PS2, Xbee, etc.) changes
+extern INCONTROLSTATE   g_InControlState;		 // State information that controller changes
 
 //-----------------------------------------------------------------------------
 // Define Global variables

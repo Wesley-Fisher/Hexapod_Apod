@@ -34,10 +34,9 @@ typedef struct _Coord3D {
 
 
 //==============================================================================
-// Class ControlState: The purpose of the Control State object is to encapsulate
-// all variables that can be dynamically changed in real time by controller input.
-// The main code will check an instance of this object in each iteration to determine
-// if it needs to execute a gait or switch modes. 
+// class ControlState: This is the main structure of data that the Control 
+//      manipulates and is used by the main Phoenix Code to make it do what is
+//      requested.
 //==============================================================================
 typedef struct _InControlState {
      boolean		fHexOn;				//Switch to turn on Phoenix
@@ -67,18 +66,12 @@ typedef struct _InControlState {
      byte			InputTimeDelay;	//Delay that depends on the input to get the "sneaking" effect
      word			SpeedControl;	//Adjustible Delay
      
-//[Mandible Control]
+//[Mandible Pose]
 // Z+ points into the robot body
 // Y+ points up into the air
 // X+ points to the right
      COORD3D       ManPos;
      byte          ManClos;
-     
-//[Tail Control]
-//Y pans the tail from side to side 
-//Z raies and lowers the tail 
-    COORD3D    TailPos; 
-  
 } INCONTROLSTATE;
 
 

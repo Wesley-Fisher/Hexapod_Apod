@@ -36,7 +36,6 @@ class ServoDriver {
 #endif 
 
     void OutputServoInfoForMandibles(short xRot, short yRot, short zRot);
-    void OutputServoInfoForTails(short yRot, short zRot);
 
     void CommitServoDriver(word wMoveTime);
     void FreeServos(void);
